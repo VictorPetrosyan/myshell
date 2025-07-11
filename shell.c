@@ -40,7 +40,7 @@ void historyAction(char *command, int mode){
     if(fptr == NULL){
         fptr = fopen("history.txt", "a+");
         if(fptr ==NULL){
-            perror("err while open the history file");
+            perror("history open failed");
             exit(1);
         }
     }
@@ -59,8 +59,6 @@ void historyAction(char *command, int mode){
        
         if(*command == '0') return;
         int num = atoi(command);
-
-
 
         if(num){
             fseek(fptr, 0, SEEK_END);
@@ -122,7 +120,6 @@ int getFullPath(char **path){
         return 1;
     } 
     else{
-
         return 0;
     }
 
@@ -140,15 +137,12 @@ int getFullPath(char **path){
 
     *path = temp;
     
-
     return 1;
 }
 
 void cd(char **path){
     struct stat sb;
     getFullPath(path);
-
-    printf("newPath: %s\n", *path);
 
     if(stat(*path, &sb) ==0){
         if( S_ISDIR(sb.st_mode)){
@@ -275,7 +269,6 @@ void variableAction(char *str, int mode){
             printf("command set: set key=value\n");
         }
         
-
         index++;
         return;
     } else if(mode == GETVAR){
@@ -322,7 +315,6 @@ void str_cpy(char *dest, char *str){
         }
 
         dest[i] = '\0';
-
 }
 
 int isExternal(char **tokens, int tokenCounts){
@@ -393,9 +385,6 @@ int main(){
         if(!built){
             isExternal(tokens, tokenCounts);
         }
-        
-
-
     }   
     
     freeTokens(tokens);
