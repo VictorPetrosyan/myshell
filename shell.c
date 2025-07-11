@@ -54,6 +54,7 @@ void historyAction(char *command, int mode){
             perror("error while write to history");
             exit(1);
         }
+        fflush(fptr);
         
     } else if(mode == GETHISTORY){
        
