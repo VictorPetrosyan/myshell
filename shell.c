@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <ctype.h>
 
-char pwd[256] = "/home/victor/Desktop/shell";
+char pwd[1024] = {0};
 
 typedef struct {
     char key[128];
@@ -49,7 +49,7 @@ void historyAction(char *command, int mode){
             perror("error while write to history");
             exit(1);
         }
-
+        
         if(fputs("\n", fptr) == EOF){
             perror("error while write to history");
             exit(1);
@@ -86,7 +86,7 @@ void historyAction(char *command, int mode){
         }
 
     }
-
+    
 
 }
 
@@ -98,7 +98,6 @@ int getFullPath(char **path){
         char *off = strrchr(newpath, '/');
         if(off !=NULL){
             char *isSingle = strchr(newpath, '/');
-            printf("isSingle: %p\noff: %p\n", isSingle, off );
             if(off == isSingle){
                 *(off + 1) = '\0';
             }else{
@@ -114,7 +113,7 @@ int getFullPath(char **path){
         if(strcmp(newpath, "/") == 0){
         strncat(newpath, *path + 2, sizeof(newpath) - strlen(newpath) - 1);
 
-        } else
+    } else
         strncat(newpath, *path + 1, sizeof(newpath) - strlen(newpath) - 1);
     }
     else if(strncmp(*path, "/", 1) == 0){
@@ -132,7 +131,7 @@ int getFullPath(char **path){
     if(!temp){
         perror("realoccating err");
         exit(1);
-
+        
     }
     str_cpy(temp, newpath);
 
@@ -149,9 +148,9 @@ void cd(char **path){
         if( S_ISDIR(sb.st_mode)){
             str_cpy(pwd, *path);
         }else{
-        printf("path is invalid\n");
+            printf("path is invalid\n");
     }
-    } else{
+} else{
         printf("path is invalid\n");
     }
     
@@ -165,15 +164,8 @@ int isBuiltIn(char **tokens,int tokenCounts){
         }
         variableAction(tokens[1], SET);
         return 1;
-    } if (strcmp(tokens[0], "pid") == 0) {
-        if(tokenCounts > 2){
-            printf("invalid arguments\n");
-            return 1;
-        }
-        printf("%d", getpid());
-        return 1;
     } else if (strcmp(tokens[0], "unset") == 0) {
-         if(tokenCounts < 2 || tokenCounts > 3){
+        if(tokenCounts < 2 || tokenCounts > 3){
             printf("invalid arguments\n");
             return 1;
         }
@@ -196,7 +188,7 @@ int isBuiltIn(char **tokens,int tokenCounts){
             printf("invalid arguments\n");
             return 1;
         }
-        printf("%s", pwd);
+        printf("%s\n", pwd);
         return 1;
     } else if(strcmp(tokens[0], "cd") == 0) {
          if(tokenCounts != 2){
@@ -232,7 +224,7 @@ void tokenaizing(char *command, char **tokens, int *tokenCounts){
         str_cpy(tokens[i], token);
         
         token = strtok(NULL, " ");
-
+        
         i++;
     }
     tokens[i] = NULL;
@@ -242,7 +234,7 @@ void tokenaizing(char *command, char **tokens, int *tokenCounts){
 void variableAction(char *str, int mode){
     static varObj *variables = NULL;
     static char index = 0;
-
+    
     if(mode == FREE){
         if(variables != NULL){
             free(variables);
@@ -261,11 +253,11 @@ void variableAction(char *str, int mode){
         if(off !=NULL){
 
             *off = '\0';
-
+            
             str_cpy(variables[index].key, str);
-
+            
             str_cpy(variables[index].value, off+1);
-
+            
         }else {
             printf("command set: set key=value\n");
         }
@@ -280,7 +272,7 @@ void variableAction(char *str, int mode){
             }
         }
         str_cpy(str, " ");
-
+        
     } else if(mode == UNSET){
         for(int i = 0; i< index; i++){
             if(strcmp(variables[i].key, str) == 0){
@@ -298,9 +290,9 @@ void variableAction(char *str, int mode){
 
 void str_cpy(char *dest, char *str){
      if (!dest || !str) {
-        fprintf(stderr, "str_cpy: NULL arg (dest=%p, str=%p)\n", (void*)dest, (void*)str);
-        return;
-    }
+         fprintf(stderr, "str_cpy: NULL arg (dest=%p, str=%p)\n", (void*)dest, (void*)str);
+         return;
+        }
 
     char *off = strchr(str, '$');
 
@@ -309,16 +301,16 @@ void str_cpy(char *dest, char *str){
             variableAction(str, GETVAR);
         }
     } 
-        int i = 0;
-        while(str[i] != '\0'){
-            dest[i] = str[i];
-            i++;
+    int i = 0;
+    while(str[i] != '\0'){
+        dest[i] = str[i];
+        i++;
         }
 
         dest[i] = '\0';
-}
+    }
 
-int isExternal(char **tokens, int tokenCounts){
+    int isExternal(char **tokens, int tokenCounts){
 
             pid_t child = fork();
             if(child < 0) {
@@ -331,11 +323,11 @@ int isExternal(char **tokens, int tokenCounts){
                 printf("unknown command\n");
                 exit(1);
         }
-
+        
         int status;
-
+        
         waitpid(child,&status,0);
-    return 0;
+        return 0;
 
 }
 
@@ -346,16 +338,17 @@ void cleanSpace(char *str){
 }
 
 void freeTokens(char **tokens){
-     for(int i = 0; tokens[i] != NULL; i++){
+    for(int i = 0; tokens[i] != NULL; i++){
         free(tokens[i]);
     }
 }
 
 int main(){
-
+    
     char command[256] = {};
+    getcwd(pwd, sizeof(pwd));
     char **tokens = malloc(sizeof(char *) * 64);
-
+    
     if(tokens == NULL){
         perror("err caused by allocator");
         exit(1);
